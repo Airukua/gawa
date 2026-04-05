@@ -1,0 +1,57 @@
+seed: 42
+device: "cuda"
+
+data:
+  train_path: "data/raw/toy.txt"
+  val_path: null
+  test_path: null
+  val_split: 0.05
+  test_split: 0.0
+  max_word_len: 32
+
+model:
+  char_emb_dim: 32
+  pos_enc_dim: 32
+  hidden_dim: 128
+  eword_dim: 256
+  max_word_len: 32
+  encoder_lambda_adjust: 0.25
+  decoder_num_layers: 1
+  decoder_num_heads: 2
+
+training:
+  epochs: 10
+  batch_size: 128
+  lr: 1.0e-3
+  weight_decay: 0.01
+  grad_clip_norm: 1.0
+  teacher_forcing: true
+  use_tqdm: true
+  log_every: 50
+  eval_every: 1
+  sample_every: 5
+  sample_count: 5
+  num_workers: 2
+  pin_memory: true
+  amp: false
+  checkpoint:
+    dir: "checkpoints/gawa_small"
+    save_every: 1
+    save_best: true
+    resume_path: null
+    max_keep: 3
+  early_stopping:
+    enabled: false
+    patience: 5
+    min_delta: 0.0
+
+scheduler:
+  name: "cosine_anneal"
+  warmup_steps: 0
+  min_lr: 0.0
+
+wandb:
+  enabled: false
+  project: "gawa"
+  entity: null
+  run_name: "gawa-small"

@@ -1,0 +1,6 @@
+checkpoints/
+data/raw/
+data/processed/
+*.pt
+*.bin
+*.cache
