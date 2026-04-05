@@ -180,9 +180,3 @@ print(embeddings.shape)
 MIT License. See `LICENSE` for details.
 
 ---
-
-## Author
-
-**Abdul Wahid Rukua**  
-🤗 HuggingFace: AiRukua  
-LinkedIn: Abdul Wahid Rukua
