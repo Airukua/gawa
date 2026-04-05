@@ -1,207 +1,138 @@
 # GAWA — Gaussian-Weighted Abstraction for Word Architecture
 
-> A morphological character-level encoder/decoder with Gaussian Positional Encoding,  
-> designed as a front-end module for large language models.
+![GAWA Banner](gawa.jpg)
 
-[![HuggingFace](https://img.shields.io/badge/🤗%20HuggingFace-AiRukua-yellow)](https://huggingface.co/AiRukua)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Abdul%20Wahid%20Rukua-blue)](https://id.linkedin.com/in/abdul-wahid-rukua)
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-orange)](https://pytorch.org/)
+GAWA adalah encoder–decoder karakter tingkat kata yang membentuk vektor **`eword`** untuk setiap kata menggunakan **Gaussian positional encoding** dan **Gaussian-weighted pooling**. Proyek ini dirancang sebagai modul front-end yang menggantikan tokenizer subword, sehingga panjang urutan mengikuti jumlah kata, bukan jumlah subword.
 
 ---
 
-## Overview
+## Ringkasan
 
-**GAWA** is a word-level morphological autoencoder that encodes any word — including unseen or morphologically complex words — into a dense embedding vector (`eword`) using character-level representations weighted by a **Gaussian positional prior**.
+**GAWA** bekerja pada level karakter dan merangkum satu kata menjadi satu embedding tetap. Keunggulan utamanya:
 
-Unlike subword tokenizers (BPE, WordPiece, SentencePiece), GAWA treats each word as a sequence of characters and compresses it into a single fixed-size vector. This makes it:
-
-- **Language-agnostic**: Works on any character-based language without a pretrained vocabulary
-- **Morphology-aware**: Positional weighting captures prefix/suffix importance naturally
-- **Compact**: The output sequence length equals the number of words, not subword tokens
-
-GAWA is designed to plug in as the **front-end morphological module** of a Global Transformer, replacing the tokenizer entirely.
+- **Language-agnostic**: Tidak membutuhkan vocabulary subword.
+- **Morphology-aware**: Bobot posisi memberi penekanan pada prefiks/sufiks.
+- **Sequence lebih pendek**: 1 kata = 1 vektor.
+- **Siap integrasi**: Cocok sebagai front-end untuk model transformer global.
 
 ---
 
-## Architecture
+## Instalasi
 
-```
-Input Word (characters)
-        │
-        ├──► Char Embedding  (trainable)
-        │
-        ├──► Gaussian Positional Encoding  (fixed, non-trainable)
-        │         μ_j = j,   σ_j = √j
-        │
-        └──► Concat → Fusion MLP
-                          │
-                    Weighted Pooling
-                    (Gaussian Prior + Learnable Δ)
-                          │
-                    Output Projection
-                          │
-                       EWORD Vector  ──────────────────────────┐
-                                                               │
-                                                    ┌──────────▼──────────┐
-                                                    │    GAWA Decoder     │
-                                                    │  Init GRU Hidden    │
-                                                    │  Char Emb + Concat  │
-                                                    │  GRU Cell           │
-                                                    │  Cross-Attention    │
-                                                    │  Residual + Logits  │
-                                                    └─────────────────────┘
-```
-
-See the full diagram: **GAWA Architecture** (above image).
-
----
-
-## Key Components
-
-### 1. Gaussian Positional Encoding (Fixed)
-Each character position `i` is encoded using `dim` Gaussian basis functions:
-
-$$\text{GPE}(i, j) = \exp\left(-\frac{(i - \mu_j)^2}{2\sigma_j^2}\right), \quad \mu_j = j, \quad \sigma_j = \sqrt{j}$$
-
-This is **non-trainable** — it provides a stable, smooth spatial prior over character positions without needing learned position embeddings.
-
-### 2. Gaussian Position Prior (Weighted Pooling)
-Instead of mean pooling, GAWA uses a position-importance prior inspired by psycholinguistic findings that the beginning and end of a word carry more information:
-
-$$\sigma_i = d - (d - s_0) \cdot e^{-r \cdot i}$$
-
-$$w_i = \frac{1/\sigma_i}{\sum_j 1/\sigma_j}$$
-
-Default hyperparameters: `d=1.617`, `s0=0.5`, `r=1.105`
-
-A small learnable MLP further adjusts these weights (`lambda_adjust=0.3`), allowing the model to fine-tune positional importance during training.
-
-### 3. Encoder → EWORD Vector
-The fused character representations are pooled via the weighted sum to produce a single `eword` vector of dimension `768` (compatible with standard transformer hidden sizes).
-
-### 4. Decoder (GRU + Cross-Attention)
-The decoder reconstructs the original word character-by-character using:
-- GRU initialized from the `eword` vector
-- Direct `eword` context concatenated at each step
-- Cross-attention over the `eword` as key/value
-- Residual connection before the output projection
-
----
-
-## Installation
+### 1. Install via GitHub (pip)
 
 ```bash
-git clone https://github.com/AiRukua/gawa
+pip install git+https://github.com/AiRukua/gawa.git
+```
+
+### 2. Install untuk Development Lokal
+
+```bash
+git clone https://github.com/AiRukua/gawa.git
 cd gawa
-pip install torch
+pip install -e .
 ```
 
-No additional dependencies beyond PyTorch.
+### 3. Dependensi Tambahan (opsional)
+
+```bash
+pip install -e ".[dev]"
+```
 
 ---
 
-## Quick Start
+## Quick Start (CLI)
 
-### Training
+### 1. Menyiapkan Data
+
+GAWA membutuhkan file **word list** (satu kata per baris). Kamu bisa menyiapkan dari teks mentah:
+
+```bash
+gawa-prepare --input data/raw.txt --output data/processed/train.txt --lower
+```
+
+### 2. Training
+
+Gunakan konfigurasi YAML yang tersedia di `configs/`:
+
+```bash
+gawa-train --config configs/gawa_small.yaml
+```
+
+Checkpoint akan tersimpan di folder yang ditentukan pada config (default: `checkpoints/`).
+
+### 3. Encoding Word Embeddings
+
+```bash
+gawa-encode \
+  --checkpoint checkpoints/gawa_small/best.pt \
+  --words "makan,memakan,makanan"
+```
+
+Output default adalah JSONL (bisa diarahkan ke file dengan `--output`).
+
+### 4. Evaluasi / Rekonstruksi
+
+```bash
+gawa-evaluate --config configs/gawa_small.yaml --checkpoint checkpoints/gawa_small/best.pt
+```
+
+---
+
+## Quick Start (Python)
 
 ```python
-from gawa import train_gawa
+from gawa import GAWAModel, CharVocab, encode_words, train_from_config, load_config
 
-words = ["makan", "memakan", "makanan", "dimakan", ...]  # your word list
+# Load config dan training
+cfg = load_config("configs/gawa_small.yaml")
+train_from_config(cfg)
 
-model, vocab = train_gawa(
-    words=words,
-    epochs=100,
-    batch_size=256,
-    lr=1e-3,
-    eword_dim=768,
-    save_path="gawa_checkpoint.pt",
+# Encoding kata dari checkpoint
+kept_words, embeddings = encode_words(
+    checkpoint_path="checkpoints/gawa_small/best.pt",
+    words=["makan", "memakan", "makanan"],
 )
-```
-
-### Encoding a Sentence
-
-```python
-from gawa import encode_sentence
-
-sentence = "saya sedang belajar membuat model bahasa"
-ewords = encode_sentence(sentence, model, vocab, device="cpu")
-
-# ewords.shape → (num_words, 768)
-# Ready to feed into a Global Transformer!
-```
-
-### Reconstruct (Sanity Check)
-
-```python
-reconstructed = model.reconstruct(char_ids, lengths, vocab)
-# ['makan', 'memakan', 'makanan', ...]
+print(embeddings.shape)
 ```
 
 ---
 
-## Model Dimensions
+## Struktur Proyek
 
-| Parameter         | Default | Description                          |
-|-------------------|---------|--------------------------------------|
-| `char_emb_dim`    | 64      | Character embedding size             |
-| `pos_enc_dim`     | 64      | Gaussian PE dimension                |
-| `hidden_dim`      | 256     | Fusion MLP & GRU hidden size         |
-| `eword_dim`       | 768     | Output word embedding dimension      |
-| `max_word_len`    | 32      | Maximum word length in characters    |
-| `lambda_adjust`   | 0.3     | Weight of learnable position delta   |
+- `model/`: Implementasi encoder, decoder, dan model inti GAWA.
+- `training/`: Pipeline training, scheduler, checkpointing.
+- `data/`: Utilitas pembersihan dan pembuatan dataset word list.
+- `eval/`: Fungsi evaluasi dan encoding.
+- `scripts/`: CLI untuk training, encoding, evaluasi, dan data prep.
+- `configs/`: Contoh konfigurasi YAML.
 
 ---
 
-## Why GAWA?
+## Konfigurasi
 
-| Feature                        | BPE / WordPiece | GAWA           |
-|-------------------------------|-----------------|----------------|
-| Handles unseen words           | ✗ (UNK/fallback) | ✓ (char-based)|
-| Morphology-aware               | Partial          | ✓ Explicit     |
-| Sequence length                | Longer (subwords)| Shorter (words)|
-| Language-specific vocab needed | ✓               | ✗              |
-| Trainable end-to-end           | ✓               | ✓              |
-| Positional character weighting | ✗               | ✓ Gaussian     |
+GAWA memakai konfigurasi YAML terstruktur. Contoh tersedia di `configs/`:
 
----
+- `configs/gawa_small.yaml`
+- `configs/gawa_medium.yaml`
+- `configs/gawa_large.yaml`
 
-## Recommended Training Data
+Parameter penting:
 
-For best results, train GAWA on a large, diverse word list:
-
-- **Minimum**: ~10,000 unique words
-- **Recommended**: 500,000 – 1,000,000 unique words
-- **Sources**: Language dictionary, Wikipedia word dump, Common Crawl vocabulary
-
-The model learns word reconstruction, so any large vocabulary list works — no labels required.
+- `data.max_word_len`: Panjang kata maksimal (harus sama dengan `model.max_word_len`).
+- `model.eword_dim`: Dimensi embedding output.
+- `training.batch_size`, `training.epochs`, `training.lr`: Hyperparameter training.
 
 ---
 
-## Integration with Global Transformer
+## Lisensi
 
-GAWA outputs an `eword` sequence that maps directly to transformer input:
+MIT License. Lihat `LICENSE` untuk detail.
 
-```
-Sentence: "saya belajar NLP"
-           ↓       ↓      ↓
-         eword₁  eword₂  eword₃     shape: (3, 768)
-                   ↓
-           Global Transformer
-```
+---
 
-Because sequence length = number of words (not subword tokens), the attention window is used far more efficiently, especially for morphologically rich languages like Indonesian, Arabic, Finnish, or Turkish.
-
-
-## Author
+## Kontak
 
 **Abdul Wahid Rukua**  
-🤗 [huggingface.co/AiRukua](https://huggingface.co/AiRukua)  
-💼 [linkedin.com/in/abdul-wahid-rukua](https://id.linkedin.com/in/abdul-wahid-rukua)
-
----
-
-## License
-
-MIT License. See `LICENSE` for details.
+🤗 HuggingFace: AiRukua  
+LinkedIn: Abdul Wahid Rukua

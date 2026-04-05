@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gawa"
+version = "0.1.0"
+description = "Gaussian-Weighted Abstraction for Word Architecture (GAWA)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { file = "LICENSE" }
+authors = [
+  { name = "Abdul Wahid Rukua" }
+]
+keywords = ["nlp", "morphology", "character-encoder", "autoencoder", "gaussian", "tokenizer"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence"
+]
+
+dependencies = [
+  "torch>=2.0",
+  "numpy>=1.24.0",
+  "pyyaml>=6.0",
+  "tqdm>=4.66.0",
+  "wandb>=0.16.0"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=7.0.0"
+]
+
+[project.scripts]
+gawa-train = "scripts.train:main"
+gawa-prepare = "scripts.prepare:main"
+gawa-encode = "scripts.encode:main"
+gawa-evaluate = "scripts.evaluate:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
