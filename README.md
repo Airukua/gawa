@@ -124,9 +124,11 @@ gawa-evaluate --config configs/gawa_small.yaml --checkpoint checkpoints/gawa_sma
 ```python
 from gawa import encode_words, load_config, train_from_config
 
+# 1) Train from config (saves checkpoints to the directory in the YAML)
 cfg = load_config("configs/gawa_small.yaml")
 train_from_config(cfg)
 
+# 2) Encode words from a saved checkpoint
 kept_words, embeddings = encode_words(
     checkpoint_path="checkpoints/gawa_small/best.pt",
     words=["makan", "memakan", "makanan"],
