@@ -14,6 +14,12 @@ gawa-train --config configs/gawa_small.yaml
 gawa-prepare --input data/raw.txt --output data/processed/train.txt --lower
 ```
 
+For large files:
+
+```bash
+gawa-prepare --input data/raw.txt --output data/processed/train.txt --lower --batch-lines 50000
+```
+
 ## Encoding
 
 ```bash

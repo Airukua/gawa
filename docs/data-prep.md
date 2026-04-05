@@ -14,6 +14,7 @@ gawa-prepare --input data/raw.txt --output data/processed/train.txt --lower
 - `--max-len` maximum token length
 - `--dedupe` remove duplicates while preserving order
 - `--allow-redup` keep reduplicated hyphenated tokens (example: `go-go`)
+- `--batch-lines` process input in batches of N lines (lower memory)
 
 ## Programmatic Usage
 
@@ -27,6 +28,7 @@ prepare_file(
     min_len=1,
     max_len=64,
     dedupe=True,
+    batch_lines=50000,
 )
 ```
 

@@ -41,6 +41,7 @@ def prepare_words(
     max_len: int = 64,
     dedupe: bool = False,
     allow_redup: bool = False,
+    allow_empty: bool = False,
 ) -> list[str]:
     """Clean raw text into a list of valid word tokens.
 
@@ -60,6 +61,8 @@ def prepare_words(
         allow_redup: If True, allow hyphenated reduplications like
             ``go-go`` or ``bye-bye`` and filter out other hyphenated forms.
             If False, drop all tokens containing hyphens.
+        allow_empty: If True, return an empty list instead of raising
+            when no tokens remain.
 
     Returns:
         A list of cleaned word tokens.
@@ -90,6 +93,8 @@ def prepare_words(
         words = deduped
 
     if not words:
+        if allow_empty:
+            return []
         raise ValueError("No words after filtering; check your input text.")
 
     return words
@@ -116,6 +121,7 @@ def prepare_file(
     max_len: int = 64,
     dedupe: bool = False,
     allow_redup: bool = False,
+    batch_lines: int | None = None,
 ) -> list[str]:
     """Read a text file, clean it, and write a word list to disk.
 
@@ -127,11 +133,15 @@ def prepare_file(
         max_len: Maximum token length to keep (inclusive).
         dedupe: Remove duplicate tokens while preserving order.
         allow_redup: Allow reduplicated hyphenated tokens (``go-go``).
+        batch_lines: If set, process the input file in batches of N lines
+            to reduce peak memory usage. When None, the entire file is read
+            into memory at once.
 
     Returns:
         The cleaned list of tokens that were written to disk.
     """
-    text = Path(input_path).read_text(encoding="utf-8")
+    if batch_lines is None or batch_lines <= 0:
+        text = Path(input_path).read_text(encoding="utf-8")
     words = prepare_words(
         text,
         lower=lower,
@@ -139,6 +149,82 @@ def prepare_file(
         max_len=max_len,
         dedupe=dedupe,
         allow_redup=allow_redup,
+        allow_empty=False,
     )
     write_word_list(words, output_path)
     return words
+
+    input_path = Path(input_path)
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    seen: set[str] | None = set() if dedupe else None
+    collected: list[str] = []
+
+    with input_path.open("r", encoding="utf-8") as src, output_path.open(
+        "w", encoding="utf-8"
+    ) as dst:
+        buffer: list[str] = []
+        for line in src:
+            buffer.append(line)
+            if len(buffer) >= batch_lines:
+                _flush_batch(
+                    buffer,
+                    dst,
+                    collected,
+                    seen,
+                    lower=lower,
+                    min_len=min_len,
+                    max_len=max_len,
+                    allow_redup=allow_redup,
+                )
+                buffer = []
+        if buffer:
+            _flush_batch(
+                buffer,
+                dst,
+                collected,
+                seen,
+                lower=lower,
+                min_len=min_len,
+                max_len=max_len,
+                allow_redup=allow_redup,
+            )
+
+    if not collected:
+        raise ValueError("No words after filtering; check your input text.")
+    return collected
+
+
+def _flush_batch(
+    buffer: list[str],
+    dst,
+    collected: list[str],
+    seen: set[str] | None,
+    *,
+    lower: bool,
+    min_len: int,
+    max_len: int,
+    allow_redup: bool,
+) -> None:
+    text = "".join(buffer)
+    words = prepare_words(
+        text,
+        lower=lower,
+        min_len=min_len,
+        max_len=max_len,
+        dedupe=False,
+        allow_redup=allow_redup,
+        allow_empty=True,
+    )
+
+    if seen is not None:
+        deduped: list[str] = []
+        for w in words:
+            if w not in seen:
+                deduped.append(w)
+                seen.add(w)
+        words = deduped
+
+    if words:
+        dst.write("\n".join(words) + "\n")
+        collected.extend(words)

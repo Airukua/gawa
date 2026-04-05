@@ -50,6 +50,15 @@ def main() -> None:
         action="store_true",
         help="Keep reduplicated hyphenated tokens (e.g., go-go)",
     )
+    parser.add_argument(
+        "--batch-lines",
+        type=int,
+        default=None,
+        help=(
+            "Process input in batches of N lines to reduce memory usage "
+            "(default: read entire file)"
+        ),
+    )
     args = parser.parse_args()
 
     words = prepare_file(
@@ -60,6 +69,7 @@ def main() -> None:
         max_len=int(args.max_len),
         dedupe=args.dedupe,
         allow_redup=args.allow_redup,
+        batch_lines=args.batch_lines,
     )
     print(f"Wrote {len(words)} words to {args.output}", file=sys.stderr)
 

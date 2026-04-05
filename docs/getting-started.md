@@ -32,6 +32,12 @@ pip install -e ".[dev]"
 gawa-prepare --input data/raw.txt --output data/processed/train.txt --lower
 ```
 
+For very large files, process in batches:
+
+```bash
+gawa-prepare --input data/raw.txt --output data/processed/train.txt --lower --batch-lines 50000
+```
+
 2. Train using a config:
 
 ```bash
