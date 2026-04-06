@@ -2,11 +2,11 @@ seed: 42
 device: "cuda"
 
 data:
-  train_path: "data/raw/toy.txt"
+  train_path: "data/raw/train.txt"
   val_path: null
   test_path: null
   val_split: 0.05
-  test_split: 0.0
+  test_split: 0.05
   max_word_len: 32
 
 model:
@@ -20,8 +20,8 @@ model:
   decoder_num_heads: 4
 
 training:
-  epochs: 100
-  batch_size: 32
+  epochs: 150
+  batch_size: 4096
   lr: 6.0e-4
   weight_decay: 0.01
   grad_clip_norm: 1.0
@@ -41,9 +41,9 @@ training:
     resume_path: null
     max_keep: 3
   early_stopping:
-    enabled: false
+    enabled: true
     patience: 5
-    min_delta: 0.0
+    min_delta: 1.0e-4
 
 scheduler:
   name: "cosine_anneal"
