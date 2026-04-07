@@ -60,6 +60,14 @@ OOV: mknn
 The pretrained checkpoint was trained on **Indonesian language data**
 (~8.2 million words extracted from Indo4B).
 
+## Training Details
+
+- **Decoder training**: 2 epochs
+- **Accuracy**: 94%
+- **Dataset**: ~8.2 million words extracted from Indo4B
+- **Training time**: ~12 hours
+- **Hardware**: NVIDIA T4 (Kaggle)
+
 
 ## Architecture
 
@@ -269,4 +277,3 @@ gawa-train --config configs/gawa_small.yaml
 ## License
 
 MIT License. See `LICENSE` for details.
-
