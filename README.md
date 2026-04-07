@@ -124,7 +124,7 @@ For programmatic reconstruction/decoding, see the Python example below (`decode_
 ## Quick Start (Python)
 
 ```python
-from gawa import encode_words, load_config, train_from_config
+from gawa import GAWAModel, encode_words, load_config, train_from_config
 
 # 1) Train from config (saves checkpoints to the directory in the YAML)
 cfg = load_config("configs/gawa_small.yaml")
@@ -146,6 +146,13 @@ kept_words, reconstructed = decode_words(
 )
 for orig, rec in zip(kept_words, reconstructed):
     print(f"{orig} -> {rec}")
+
+# 4) Load from Hugging Face Hub (requires `huggingface_hub`)
+model = GAWAModel.from_pretrained("AiRukua/gawa")
+
+# 5) Encode / decode directly from model
+kept_words, embs = model.encode_words(["makan", "memakan", "makanan"])
+kept_words, recs = model.decode_words(["makan", "memakan", "makanan"])
 ```
 
 ---
