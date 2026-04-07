@@ -1,13 +1,22 @@
 # GAWA — Gaussian-Weighted Abstraction for Word Architecture
 
-
-
 <div align="center">
 
+<!-- Connect -->
 [![HuggingFace](https://img.shields.io/badge/🤗%20HuggingFace-AiRukua-yellow)](https://huggingface.co/AiRukua)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Abdul%20Wahid%20Rukua-blue)](https://id.linkedin.com/in/abdul-wahid-rukua)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-orange)](https://pytorch.org/)
+
+<!-- Platform -->
+[![Kaggle](https://img.shields.io/badge/Kaggle-AiRukua-20BEFF?logo=kaggle&logoColor=white)](https://www.kaggle.com/AiRukua)
+[![GitHub](https://img.shields.io/badge/GitHub-AiRukua-181717?logo=github&logoColor=white)](https://github.com/AiRukua)
+[![Colab](https://img.shields.io/badge/Google%20Colab-Notebooks-F9AB00?logo=googlecolab&logoColor=white)](https://colab.research.google.com/)
+[![W&B](https://img.shields.io/badge/Weights%20%26%20Biases-wandb-FFBE00?logo=weightsandbiases&logoColor=black)](https://wandb.ai/AiRukua)
+
+<!-- GitHub Stats -->
+![GitHub Stats](https://github-readme-stats.vercel.app/api?username=AiRukua&show_icons=true&theme=default&hide_border=true)
+![Top Languages](https://github-readme-stats.vercel.app/api/top-langs/?username=AiRukua&layout=compact&theme=default&hide_border=true)
 
 </div>
 
