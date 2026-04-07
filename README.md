@@ -50,15 +50,10 @@ OOV: permaenan
   permainan     sim=0.9255
   memakan       sim=0.5783
   berlarr       sim=0.5540
-
-OOV: mknn
-  mkan          sim=0.8653
-  makann        sim=0.6202
-  makan         sim=0.5459
 ```
 
-The pretrained checkpoint was trained on **Indonesian language data**
-(~8.2 million words extracted from Indo4B).
+The pretrained model was trained on **Indonesian language data**
+(~8.2 million unique words extracted from Indo4B: https://huggingface.co/datasets/taufiqdp/Indo4B).
 
 ## Training Details
 
