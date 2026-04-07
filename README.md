@@ -10,7 +10,6 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-orange)](https://pytorch.org/)
 
----
 
 ## Overview
 
@@ -24,7 +23,6 @@ Unlike subword tokenizers (BPE, WordPiece, SentencePiece), GAWA treats each word
 
 GAWA is designed to plug in as the **front-end morphological module** of a Global Transformer, replacing the tokenizer entirely.
 
----
 
 ## OOV Similarity (Indonesian)
 
@@ -62,7 +60,6 @@ OOV: mknn
 The pretrained checkpoint was trained on **Indonesian language data**
 (~8.2 million words extracted from Indo4B).
 
----
 
 ## Architecture
 
@@ -93,7 +90,6 @@ Input Word (characters)
                                                     └─────────────────────┘
 ```
 
----
 
 ## Installation
 
@@ -117,7 +113,6 @@ pip install -e .
 pip install -e ".[dev]"
 ```
 
----
 
 ## Quick Start (CLI)
 
@@ -155,7 +150,6 @@ Default output is JSONL. Use `--output` to write to a file.
 gawa-evaluate --config configs/gawa_small.yaml --checkpoint checkpoints/gawa_small/best.pt
 ```
 
----
 
 ## Quick Start (Python - Training)
 
@@ -169,7 +163,6 @@ cfg = load_config("configs/gawa_small.yaml")
 train_from_config(cfg)
 ```
 
----
 
 ## Pretrained Model (Hugging Face)
 
@@ -184,7 +177,6 @@ model = GAWAModel.from_pretrained("AiRukua/gawa")
 kept_words, embs = model.encode_words(["makan", "memakan", "makanan"])
 kept_words, recs = model.decode_words(["makan", "memakan", "makanan"])
 ```
----
 
 ## Config Guide (YAML)
 
@@ -251,7 +243,6 @@ gawa-train --config configs/gawa_small.yaml
 | `max_word_len`    | 32      | Maximum word length in characters    |
 | `lambda_adjust`   | 0.3     | Weight of learnable position delta   |
 
----
 
 ## Why GAWA?
 
@@ -264,7 +255,6 @@ gawa-train --config configs/gawa_small.yaml
 | Trainable end-to-end           | ✓               | ✓              |
 | Positional character weighting | ✗               | ✓ Gaussian     |
 
----
 
 ## Project Structure
 
@@ -275,10 +265,8 @@ gawa-train --config configs/gawa_small.yaml
 - `scripts/`: CLI entrypoints.
 - `configs/`: YAML configuration examples.
 
----
 
 ## License
 
 MIT License. See `LICENSE` for details.
 
----
