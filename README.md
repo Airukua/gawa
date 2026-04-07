@@ -1,6 +1,6 @@
 # GAWA — Gaussian-Weighted Abstraction for Word Architecture
 
-![GAWA Banner](gawa.jpg)
+![GAWA Banner](gawa.png)
 
 > A morphological character-level encoder/decoder with Gaussian positional encoding,  
 > designed as a front-end module for large language models.
