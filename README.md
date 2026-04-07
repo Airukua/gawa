@@ -117,45 +117,94 @@ Default output is JSONL. Use `--output` to write to a file.
 gawa-evaluate --config configs/gawa_small.yaml --checkpoint checkpoints/gawa_small/best.pt
 ```
 
-For programmatic reconstruction/decoding, see the Python example below (`decode_words`).
+---
+
+## Quick Start (Python - Training)
+
+```python
+from gawa import load_config, train_from_config
+
+# 1) Load YAML config
+cfg = load_config("configs/gawa_small.yaml")
+
+# 2) Train from config (checkpoints saved to the directory in the YAML)
+train_from_config(cfg)
+```
 
 ---
 
-## Quick Start (Python)
+## Pretrained Model (Hugging Face)
+
+If you want to use the **pretrained GAWA model**, you can load it directly from
+Hugging Face:
 
 ```python
-from gawa import GAWAModel, encode_words, load_config, train_from_config
+from gawa import GAWAModel
 
-# 1) Train from config (saves checkpoints to the directory in the YAML)
-cfg = load_config("configs/gawa_small.yaml")
-train_from_config(cfg)
-
-# 2) Encode words from a saved checkpoint
-kept_words, embeddings = encode_words(
-    checkpoint_path="checkpoints/gawa_small/best.pt",
-    words=["makan", "memakan", "makanan"],
-)
-print(embeddings.shape)
-
-# 3) Decode / reconstruct words from a saved checkpoint
-from eval.decode import decode_words
-
-kept_words, reconstructed = decode_words(
-    checkpoint_path="checkpoints/gawa_small/best.pt",
-    words=["makan", "memakan", "makanan"],
-)
-for orig, rec in zip(kept_words, reconstructed):
-    print(f"{orig} -> {rec}")
-
-# 4) Load from Hugging Face Hub (requires `huggingface_hub`)
 model = GAWAModel.from_pretrained("AiRukua/gawa")
 
-# 5) Encode / decode directly from model
 kept_words, embs = model.encode_words(["makan", "memakan", "makanan"])
 kept_words, recs = model.decode_words(["makan", "memakan", "makanan"])
 ```
 
+**Training data:** this pretrained checkpoint was trained on **~8.2 million words**
+extracted from **Indo4B**.
+
 ---
+
+## Config Guide (YAML)
+
+GAWA uses a YAML config file for training (see `configs/`). The key sections are:
+
+**`data`**
+- `train_path`: Path to a text file with one word per line.
+- `max_word_len`: Maximum word length (characters). Words longer than this are filtered.
+
+**`model`**
+- `char_emb_dim`: Character embedding dimension.
+- `pos_enc_dim`: Gaussian positional encoding dimension.
+- `hidden_dim`: Fusion MLP & decoder GRU hidden size.
+- `eword_dim`: Output word embedding dimension.
+- `max_word_len`: Must match `data.max_word_len`.
+- `encoder_lambda_adjust`: Weight for learnable position delta.
+- `decoder_num_layers`: Number of GRU layers in the decoder.
+- `decoder_num_heads`: Number of cross-attention heads.
+
+**`training`**
+- `batch_size`: Training batch size.
+- `epochs`: Number of training epochs.
+- `lr`: Learning rate.
+- `sample_every`: How often to log reconstructions.
+
+Example snippet:
+
+```yaml
+data:
+  train_path: data/processed/train.txt
+  max_word_len: 32
+
+model:
+  char_emb_dim: 64
+  pos_enc_dim: 64
+  hidden_dim: 256
+  eword_dim: 768
+  max_word_len: 32
+  encoder_lambda_adjust: 0.3
+  decoder_num_layers: 1
+  decoder_num_heads: 2
+
+training:
+  batch_size: 256
+  epochs: 20
+  lr: 3.0e-4
+  sample_every: 1
+```
+
+To train with your config:
+
+```bash
+gawa-train --config configs/gawa_small.yaml
+```
 
 ## Model Dimensions
 
