@@ -1,13 +1,17 @@
 # GAWA — Gaussian-Weighted Abstraction for Word Architecture
 
-![GAWA Banner](gawa.png)
 
+
+<div align="center">
 
 [![HuggingFace](https://img.shields.io/badge/🤗%20HuggingFace-AiRukua-yellow)](https://huggingface.co/AiRukua)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Abdul%20Wahid%20Rukua-blue)](https://id.linkedin.com/in/abdul-wahid-rukua)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-orange)](https://pytorch.org/)
 
+</div>
+
+![GAWA Banner](gawa.png)
 
 ## Overview
 
