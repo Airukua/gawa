@@ -35,7 +35,19 @@ lengths = torch.tensor([5, 3])
 logits, eword = model(char_ids, lengths)
 ```
 
+## `GAWAModel.from_pretrained`
+
+```python
+from gawa import GAWAModel
+
+model = GAWAModel.from_pretrained("AiRukua/gawa")
+kept_words, embs = model.encode_words(["makan", "memakan", "makanan"])
+kept_words, recs = model.decode_words(["makan", "memakan", "makanan"])
+```
+
 ## Notes
 
 - The `gawa` package re-exports `encode_words`, `load_config`, `train_from_config`.
 - Use `CharVocab` to encode raw words when building custom pipelines.
+- `GAWAModel.encode_words` / `decode_words` are available only when the model
+  is loaded via `from_pretrained()`.

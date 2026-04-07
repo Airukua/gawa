@@ -52,17 +52,22 @@ gawa-encode \
   --words "makan,memakan,makanan"
 ```
 
-## Quick Run (Python)
+## Quick Run (Python - Training)
 
 ```python
-from gawa import encode_words, load_config, train_from_config
+from gawa import load_config, train_from_config
 
 cfg = load_config("configs/gawa_small.yaml")
 train_from_config(cfg)
+```
 
-kept_words, embeddings = encode_words(
-    checkpoint_path="checkpoints/gawa_small/best.pt",
-    words=["makan", "memakan", "makanan"],
-)
-print(embeddings.shape)
+## Quick Run (Python - Pretrained)
+
+```python
+from gawa import GAWAModel
+
+model = GAWAModel.from_pretrained("AiRukua/gawa")
+
+kept_words, embs = model.encode_words(["makan", "memakan", "makanan"])
+kept_words, recs = model.decode_words(["makan", "memakan", "makanan"])
 ```
