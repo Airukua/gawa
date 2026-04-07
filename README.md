@@ -117,6 +117,8 @@ Default output is JSONL. Use `--output` to write to a file.
 gawa-evaluate --config configs/gawa_small.yaml --checkpoint checkpoints/gawa_small/best.pt
 ```
 
+For programmatic reconstruction/decoding, see the Python example below (`decode_words`).
+
 ---
 
 ## Quick Start (Python)
@@ -134,6 +136,16 @@ kept_words, embeddings = encode_words(
     words=["makan", "memakan", "makanan"],
 )
 print(embeddings.shape)
+
+# 3) Decode / reconstruct words from a saved checkpoint
+from eval.decode import decode_words
+
+kept_words, reconstructed = decode_words(
+    checkpoint_path="checkpoints/gawa_small/best.pt",
+    words=["makan", "memakan", "makanan"],
+)
+for orig, rec in zip(kept_words, reconstructed):
+    print(f"{orig} -> {rec}")
 ```
 
 ---

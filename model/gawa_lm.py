@@ -31,7 +31,7 @@ from __future__ import annotations
 
 __all__ = ["GAWAModel"]
 
-from typing import Final, Optional
+from typing import Final, Optional, Iterator, List, Tuple
 
 import torch
 import torch.nn as nn
@@ -39,6 +39,9 @@ import torch.nn as nn
 from model.char_vocab import CharVocab
 from model.decoder import GAWADecoder
 from model.encoder import GAWAEncoder
+from training.checkpoint import load_checkpoint
+from training.config import load_config
+from training.utils import select_device, set_seed
 
 # ---------------------------------------------------------------------------
 # Module defaults
@@ -254,6 +257,124 @@ class GAWAModel(nn.Module):
         return [vocab.decode(ids.tolist()) for ids in pred_ids]
 
     # ------------------------------------------------------------------
+    # Hugging Face helpers
+    # ------------------------------------------------------------------
+
+    @classmethod
+    def from_pretrained(
+        cls,
+        repo_id: str,
+        filename: str = "best.pt",
+        config_path: str | None = None,
+        device: str | None = None,
+        cache_dir: str | None = None,
+    ) -> "GAWAModel":
+        """Load a pretrained GAWA checkpoint from Hugging Face Hub.
+
+        Example::
+            >>> model = GAWAModel.from_pretrained("AiRukua/gawa")
+        """
+        try:
+            from huggingface_hub import hf_hub_download
+        except Exception as exc:  # pragma: no cover - import guard
+            raise ImportError(
+                "huggingface_hub is required for from_pretrained(). "
+                "Install with: pip install huggingface_hub"
+            ) from exc
+
+        checkpoint_path = hf_hub_download(
+            repo_id=repo_id,
+            filename=filename,
+            cache_dir=cache_dir,
+        )
+
+        if config_path:
+            cfg = load_config(config_path)
+        else:
+            cfg = _load_config_from_checkpoint(checkpoint_path)
+
+        if "seed" in cfg:
+            set_seed(int(cfg["seed"]))
+
+        device_obj = select_device(device or cfg.get("device", "cpu"))
+        model_cfg = cfg["model"]
+        vocab = CharVocab()
+
+        model = cls(
+            vocab_size=vocab.vocab_size,
+            char_emb_dim=int(model_cfg["char_emb_dim"]),
+            pos_enc_dim=int(model_cfg["pos_enc_dim"]),
+            hidden_dim=int(model_cfg["hidden_dim"]),
+            eword_dim=int(model_cfg["eword_dim"]),
+            max_word_len=int(model_cfg["max_word_len"]),
+            encoder_lambda_adjust=float(model_cfg["encoder_lambda_adjust"]),
+            decoder_num_layers=int(model_cfg["decoder_num_layers"]),
+            decoder_num_heads=int(model_cfg["decoder_num_heads"]),
+        ).to(device_obj)
+
+        load_checkpoint(
+            checkpoint_path,
+            model,
+            optimizer=None,
+            scheduler=None,
+            map_location=device_obj,
+        )
+
+        model.eval()
+        # Store helpers for encode/decode convenience methods
+        model._gawa_cfg = cfg
+        model._gawa_vocab = vocab
+        model._gawa_device = device_obj
+        model._checkpoint_path = checkpoint_path
+        model._config_path = config_path
+        return model
+
+    @torch.inference_mode()
+    def encode_words(
+        self,
+        words: List[str],
+        batch_size: int | None = None,
+    ) -> Tuple[List[str], torch.Tensor]:
+        """Encode a list of words into eword embeddings.
+
+        Uses the same logic as `eval.encode.encode_words`.
+        Returns (kept_words, embeddings) where embeddings is a CPU tensor.
+        """
+        if not hasattr(self, "_checkpoint_path"):
+            raise ValueError("encode_words requires a model loaded via from_pretrained().")
+        from eval.encode import encode_words as _encode_words
+
+        device_str = str(getattr(self, "_gawa_device", "cpu"))
+        kept_words, embeddings = _encode_words(
+            checkpoint_path=self._checkpoint_path,
+            config_path=getattr(self, "_config_path", None),
+            words=words,
+            batch_size=batch_size,
+            device=device_str,
+        )
+        return kept_words, torch.from_numpy(embeddings)
+
+    @torch.inference_mode()
+    def decode_words(
+        self,
+        words: List[str],
+        batch_size: int | None = None,
+    ) -> Tuple[List[str], List[str]]:
+        """Decode / reconstruct a list of words using `eval.decode.decode_words`."""
+        if not hasattr(self, "_checkpoint_path"):
+            raise ValueError("decode_words requires a model loaded via from_pretrained().")
+        from eval.decode import decode_words as _decode_words
+
+        device_str = str(getattr(self, "_gawa_device", "cpu"))
+        return _decode_words(
+            checkpoint_path=self._checkpoint_path,
+            config_path=getattr(self, "_config_path", None),
+            words=words,
+            batch_size=batch_size,
+            device=device_str,
+        )
+
+    # ------------------------------------------------------------------
     # Dunder helpers
     # ------------------------------------------------------------------
 
@@ -275,4 +396,61 @@ def _validate_positive_int(value: object, name: str) -> None:
     if not isinstance(value, int) or value <= 0:
         raise ValueError(
             f"{name} must be a positive integer, got {value!r}"
+        )
+
+
+def _load_config_from_checkpoint(checkpoint_path: str) -> dict:
+    """Extract training configuration from checkpoint metadata."""
+    state = torch.load(
+        checkpoint_path,
+        map_location="cpu",
+        weights_only=False,
+    )
+    cfg = state.get("config")
+    if not isinstance(cfg, dict):
+        raise ValueError(
+            "Checkpoint does not contain an embedded config. "
+            "Provide config_path or use a checkpoint saved with config."
+        )
+    return cfg
+
+
+def _iter_word_batches(
+    words: List[str],
+    vocab: CharVocab,
+    max_len: int,
+    batch_size: int,
+) -> Iterator[Tuple[List[str], torch.Tensor, torch.Tensor]]:
+    """Batch words with padding and length tracking."""
+    batch_words: List[str] = []
+    batch_ids: List[List[int]] = []
+    batch_lengths: List[int] = []
+
+    for word in words:
+        word = word.strip()
+        if not word:
+            continue
+        if len(word) < 1 or len(word) > max_len - 2:
+            continue
+
+        ids = vocab.encode(word)
+        length = len(ids)
+        pad_len = max_len - length
+        batch_words.append(word)
+        batch_ids.append(ids + [vocab.PAD] * pad_len)
+        batch_lengths.append(length)
+
+        if len(batch_words) >= batch_size:
+            yield (
+                batch_words,
+                torch.tensor(batch_ids, dtype=torch.long),
+                torch.tensor(batch_lengths, dtype=torch.long),
+            )
+            batch_words, batch_ids, batch_lengths = [], [], []
+
+    if batch_words:
+        yield (
+            batch_words,
+            torch.tensor(batch_ids, dtype=torch.long),
+            torch.tensor(batch_lengths, dtype=torch.long),
         )
