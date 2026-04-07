@@ -97,13 +97,19 @@ Input Word (characters)
 
 ## Installation
 
-### 1. Install via GitHub (pip)
+### 1. Install via PyPI (pip)
+
+```bash
+pip install gawa
+```
+
+### 2. Install via GitHub (pip)
 
 ```bash
 pip install git+https://github.com/AiRukua/gawa.git
 ```
 
-### 2. Local Development Install
+### 3. Local Development Install
 
 ```bash
 git clone https://github.com/AiRukua/gawa.git
@@ -111,7 +117,7 @@ cd gawa
 pip install -e .
 ```
 
-### 3. Optional Dev Dependencies
+### 4. Optional Dev Dependencies
 
 ```bash
 pip install -e ".[dev]"
