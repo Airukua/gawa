@@ -2,8 +2,6 @@
 
 ![GAWA Banner](gawa.png)
 
-> A morphological character-level encoder/decoder with Gaussian positional encoding,  
-> designed as a front-end module for large language models.
 
 [![HuggingFace](https://img.shields.io/badge/🤗%20HuggingFace-AiRukua-yellow)](https://huggingface.co/AiRukua)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Abdul%20Wahid%20Rukua-blue)](https://id.linkedin.com/in/abdul-wahid-rukua)
