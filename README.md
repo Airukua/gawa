@@ -26,6 +26,44 @@ GAWA is designed to plug in as the **front-end morphological module** of a Globa
 
 ---
 
+## OOV Similarity (Indonesian)
+
+GAWA can **distinguish words by morphological footprint** and still place
+misspellings or variants near their correct forms. Below are examples of
+OOV (out-of-vocabulary) queries from Indonesian words.
+
+```
+OOV: makann
+  makanan       sim=0.9846
+  makan         sim=0.9779
+  mkan          sim=0.8618
+
+OOV: mkan
+  mknn          sim=0.8653
+  makan         sim=0.8627
+  makann        sim=0.8618
+
+OOV: berlarr
+  berlari       sim=0.9857
+  permaenan     sim=0.5540
+  permainan     sim=0.4860
+
+OOV: permaenan
+  permainan     sim=0.9255
+  memakan       sim=0.5783
+  berlarr       sim=0.5540
+
+OOV: mknn
+  mkan          sim=0.8653
+  makann        sim=0.6202
+  makan         sim=0.5459
+```
+
+The pretrained checkpoint was trained on **Indonesian language data**
+(~8.2 million words extracted from Indo4B).
+
+---
+
 ## Architecture
 
 ```
