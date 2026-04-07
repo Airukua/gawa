@@ -184,10 +184,6 @@ model = GAWAModel.from_pretrained("AiRukua/gawa")
 kept_words, embs = model.encode_words(["makan", "memakan", "makanan"])
 kept_words, recs = model.decode_words(["makan", "memakan", "makanan"])
 ```
-
-**Training data:** this pretrained checkpoint was trained on **~8.2 million words**
-extracted from **Indo4B**.
-
 ---
 
 ## Config Guide (YAML)
