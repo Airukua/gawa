@@ -12,6 +12,8 @@
 
 ![GAWA Banner](gawa.png)
 
+If you find this GitHub useful, please consider giving it a star.
+
 ## Overview
 
 **GAWA** is a word-level morphological autoencoder that encodes any word — including unseen or morphologically complex words — into a dense embedding vector (`eword`) using character-level representations weighted by a **Gaussian positional prior**.
@@ -23,6 +25,19 @@ Unlike subword tokenizers (BPE, WordPiece, SentencePiece), GAWA treats each word
 - **Compact**: The output sequence length equals the number of words, not subword tokens
 
 GAWA is designed to plug in as the **front-end morphological module** of a Global Transformer, replacing the tokenizer entirely.
+
+## Citation (BibTeX)
+
+If you use or build on this work, you can cite it:
+
+```bibtex
+@misc{gawa2026,
+  title  = {GAWA},
+  author = {Abdul Wahid Rukua},
+  year   = {2026},
+  date   = {2026-04-07}
+}
+```
 
 
 ## OOV Similarity (Indonesian)
@@ -194,14 +209,14 @@ GAWA uses a YAML config file for training (see `configs/`). The key sections are
 
 **`data`**
 - `train_path`: Path to a text file with one word per line.
-- `max_word_len`: Maximum word length (characters). Words longer than this are filtered.
+- `max_word_len`: Maximum word length (characters). Words longer than this are filtered. Must match `model.max_word_len`.
 
 **`model`**
 - `char_emb_dim`: Character embedding dimension.
 - `pos_enc_dim`: Gaussian positional encoding dimension.
 - `hidden_dim`: Fusion MLP & decoder GRU hidden size.
 - `eword_dim`: Output word embedding dimension.
-- `max_word_len`: Must match `data.max_word_len`.
+- `max_word_len`: Must match `data.max_word_len` (set both to the same value to avoid a length mismatch error).
 - `encoder_lambda_adjust`: Weight for learnable position delta.
 - `decoder_num_layers`: Number of GRU layers in the decoder.
 - `decoder_num_heads`: Number of cross-attention heads.
