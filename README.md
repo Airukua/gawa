@@ -32,10 +32,11 @@ If you use or build on this work, you can cite it:
 
 ```bibtex
 @misc{gawa2026,
-  title  = {GAWA : Gaussian-Augmented for Word Architecture},
   author = {Abdul Wahid Rukua},
+  title  = {GAWA : Gaussian-Augmented for Word Architecture},
   year   = {2026},
-  date   = {2026-04-07}
+  publisher = {Github},
+  url = {https://github.com/Airukua/gawa}
 }
 ```
 
