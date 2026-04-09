@@ -28,7 +28,7 @@ GAWA is designed to plug in as the **front-end morphological module** of a Globa
 
 ## Citation (BibTeX)
 
-If you use or build on this work, you can cite it:
+If you find this useful for your research, you can cite it:
 
 ```bibtex
 @misc{gawa2026,
