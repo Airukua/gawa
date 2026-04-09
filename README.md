@@ -32,7 +32,7 @@ If you use or build on this work, you can cite it:
 
 ```bibtex
 @misc{gawa2026,
-  title  = {GAWA},
+  title  = {GAWA : Gaussian-Augmented for Word Architecture},
   author = {Abdul Wahid Rukua},
   year   = {2026},
   date   = {2026-04-07}
