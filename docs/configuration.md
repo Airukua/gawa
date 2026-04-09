@@ -11,7 +11,7 @@ Common keys:
 - `test_path` optional test list
 - `val_split` fraction of train data used for validation
 - `test_split` fraction of train data used for test
-- `max_word_len` maximum word length (must match `model.max_word_len`)
+- `max_word_len` maximum word length (must match `model.max_word_len` to avoid a length mismatch error)
 
 ## Model
 
@@ -45,5 +45,5 @@ Common keys:
 
 ## Notes
 
-- `data.max_word_len` must match `model.max_word_len`.
+- `data.max_word_len` must match `model.max_word_len` or training will fail with `data.max_word_len must match model.max_word_len`.
 - If `val_path` and `test_path` are not provided, the train list is split by `val_split` and `test_split`.

@@ -5,6 +5,15 @@
 Error: `data.max_word_len must match model.max_word_len`
 
 Fix: ensure both values are identical in your YAML config.
+Example:
+
+```yaml
+data:
+  max_word_len: 100
+
+model:
+  max_word_len: 100
+```
 
 ## Encoding Skips Words
 
